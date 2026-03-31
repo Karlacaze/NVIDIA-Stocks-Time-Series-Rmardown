@@ -532,15 +532,23 @@ test_vec <- as.numeric(test)
 
 rmse_arima  <- rmse(test_vec, as.numeric(pred_arima$mean))
 mae_arima   <- mae(test_vec,  as.numeric(pred_arima$mean))
+mape_arima  <- mape(test_vec, as.numeric(pred_arima$mean)) * 100
+r2_arima    <- 1 - sum((test_vec - as.numeric(pred_arima$mean))^2) / sum((test_vec - mean(test_vec))^2)
 
 rmse_ets    <- rmse(test_vec, as.numeric(pred_ets$mean))
 mae_ets     <- mae(test_vec,  as.numeric(pred_ets$mean))
+mape_ets    <- mape(test_vec, as.numeric(pred_ets$mean)) * 100
+r2_ets      <- 1 - sum((test_vec - as.numeric(pred_ets$mean))^2) / sum((test_vec - mean(test_vec))^2)
 
 rmse_hw_add <- rmse(test_vec, as.numeric(fit_hw_add$mean))
 mae_hw_add  <- mae(test_vec,  as.numeric(fit_hw_add$mean))
+mape_hw_add <- mape(test_vec, as.numeric(fit_hw_add$mean)) * 100
+r2_hw_add   <- 1 - sum((test_vec - as.numeric(fit_hw_add$mean))^2) / sum((test_vec - mean(test_vec))^2)
 
 rmse_hw_mul <- rmse(test_vec, as.numeric(fit_hw_mul$mean))
 mae_hw_mul  <- mae(test_vec,  as.numeric(fit_hw_mul$mean))
+mape_hw_mul <- mape(test_vec, as.numeric(fit_hw_mul$mean)) * 100
+r2_hw_mul   <- 1 - sum((test_vec - as.numeric(fit_hw_mul$mean))^2) / sum((test_vec - mean(test_vec))^2)
 ```
 
 ## Model Comparison Table
@@ -549,7 +557,9 @@ mae_hw_mul  <- mae(test_vec,  as.numeric(fit_hw_mul$mean))
 results <- data.frame(
   Model = c("ARIMA", "ETS", "HW-Additive", "HW-Multiplicative"),
   RMSE  = round(c(rmse_arima, rmse_ets, rmse_hw_add, rmse_hw_mul), 4),
-  MAE   = round(c(mae_arima,  mae_ets,  mae_hw_add,  mae_hw_mul),  4)
+  MAE   = round(c(mae_arima,  mae_ets,  mae_hw_add,  mae_hw_mul),  4),
+  MAPE  = round(c(mape_arima, mape_ets, mape_hw_add, mape_hw_mul), 4),
+  R2    = round(c(r2_arima,   r2_ets,   r2_hw_add,   r2_hw_mul),   4)
 )
 
 results <- results %>%
@@ -564,11 +574,11 @@ best_mae     <- results$Model[which.min(results$MAE)]
 best_overall <- results$Model[which.min(results$Avg_Rank)]
 
 results %>%
-  select(Model, RMSE, MAE, Rank_RMSE, Rank_MAE) %>%
+  select(Model, RMSE, MAE, MAPE, R2, Rank_RMSE, Rank_MAE) %>%
   kable(
-    caption   = "Model Comparison - RMSE and MAE on Test Set",
-    col.names = c("Model", "RMSE (USD)", "MAE (USD)", "RMSE Rank", "MAE Rank"),
-    align     = c("l", "r", "r", "c", "c")
+    caption   = "Model Comparison - RMSE, MAE, MAPE and R² on Test Set",
+    col.names = c("Model", "RMSE (USD)", "MAE (USD)", "MAPE (%)", "R²", "RMSE Rank", "MAE Rank"),
+    align     = c("l", "r", "r", "r", "r", "c", "c")
   ) %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed", "bordered"),
@@ -577,7 +587,7 @@ results %>%
   ) %>%
   row_spec(which.min(results$RMSE), bold = TRUE, color = "white",
            background = "#2ecc71") %>%
-  add_header_above(c(" " = 1, "Error Metrics" = 2, "Rankings" = 2)) %>%
+  add_header_above(c(" " = 1, "Error Metrics" = 4, "Rankings" = 2)) %>%
   footnote(general = paste0("Best model by RMSE: ", best_rmse,
                              " | Best model by MAE: ", best_mae))
 ```
